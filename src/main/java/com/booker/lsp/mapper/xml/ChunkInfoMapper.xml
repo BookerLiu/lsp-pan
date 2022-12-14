@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.booker.lsp.mapper.ChunkInfoMapper">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        file_name, md5, length, chunk_count, brief, dir_id, user_id, share
+    </sql>
+    
+    <resultMap id="BaseResultMap" type="com.booker.lsp.entity.ChunkInfo">
+        <result column="file_name" property="fileName" />
+        <result column="md5" property="md5" />
+        <result column="length" property="length" />
+        <result column="chunk_count" property="chunkCount" />
+        <result column="brief" property="brief" />
+        <result column="dir_id" property="dirId" />
+        <result column="user_id" property="userId" />
+        <result column="share" property="share" />
+        <collection property="chunkFileList" ofType="com.booker.lsp.entity.ChunkFile">
+            <result column="md5" property="md5" />
+            <result column="chunk_md5" property="chunkMd5" />
+            <result column="num" property="num" />
+            <result column="path" property="path" />
+            <result column="up_date" property="upDate" />
+        </collection>
+    </resultMap>
+    
+
+    <select id="queryChunkInfoByMd5" resultMap="BaseResultMap">
+        select *
+        from f_chunk_info info,
+             f_chunk_file file
+        where info.md5 = file.md5
+          and info.md5 = #{md5}
+          and info.user_id = #{userId}
+    </select>
+
+</mapper>

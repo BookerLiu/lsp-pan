@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.booker.lsp.mapper.DirectoryMapper">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, parent_id, level, file_name, file_flag, md5, user_id, create_date, status, status_date
+    </sql>
+
+
+    <select id="queryFileListByParentID" resultType="com.booker.lsp.vo.DirectoryVO">
+        select
+        dir.id, dir.parent_id, dir.level, dir.file_name,
+        dir.file_flag, dir.md5, dir.user_id, dir.create_date, dir.status,
+        info.thumbnail, info.length, info.share
+        from f_directory dir left join f_file_info info
+        on dir.md5 = info.md5
+        where dir.user_id=#{userId} and dir.status='0'
+        <choose>
+            <when test="pid!=null and pid!=''">
+                and parent_id=#{pid}
+            </when>
+            <otherwise>
+                and parent_id is null
+            </otherwise>
+        </choose>
+        order by dir.file_flag,dir.file_name
+
+    </select>
+
+
+    <select id="queryDirAllParentById" resultType="com.booker.lsp.entity.Directory">
+        SELECT dir.*
+        FROM (
+                 SELECT @id                                                                               AS _id,
+                        (SELECT @id := parent_id FROM f_directory WHERE user_id = #{userId} and id = @id) AS _pid,
+                        @l := @l + 1                                                                      AS orderLevel
+                 FROM f_directory,
+                      (SELECT @id := #{id}) b
+                 WHERE @id >= 0
+             ) ids,
+             f_directory dir
+        WHERE user_id = #{userId}
+          and ids._id = dir.id
+        order by ids.orderLevel desc
+    </select>
+
+    <select id="queryDirAllSonById" resultType="com.booker.lsp.entity.Directory">
+        SELECT dir.*
+        FROM (
+                 SELECT @ids                                 AS _ids,
+                        (SELECT @ids := GROUP_CONCAT(id)
+                         FROM f_directory
+                         WHERE user_id = #{userId}
+                           and FIND_IN_SET(parent_id, @ids)) AS cids,
+                        @l := @l + 1                         AS orderLevel
+                 FROM f_directory,
+                      (SELECT @ids := #{id}, @l := 0) b
+                 WHERE @ids IS NOT NULL
+             ) ids,
+             f_directory dir
+        WHERE user_id = #{userId}
+          and FIND_IN_SET(dir.id, ids._ids)
+        ORDER BY orderLevel
+    </select>
+
+
+    <update id="updateStatusByIds">
+        update f_directory
+        set status=#{status},status_date=now()
+        where user_id=#{userId}
+        and id in
+        <foreach collection="idList" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="updateFileNameById">
+        update f_directory
+        set file_name = #{fileName}
+        where user_id = #{userId}
+          and id = #{id}
+    </update>
+
+</mapper>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.booker.lsp.mapper.ChunkFileMapper">
+
+    <resultMap id="BaseResultMap" type="com.booker.lsp.entity.ChunkFile" >
+        <result column="md5" property="md5" />
+        <result column="chunk_md5" property="chunkMd5" />
+        <result column="num" property="num" />
+        <result column="path" property="path" />
+        <result column="up_date" property="upDate" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        md5, chunk_md5, num, path, up_date
+    </sql>
+
+    <select id="queryLastChunkFile" resultType="com.booker.lsp.entity.ChunkFile">
+        select file.*
+        from f_chunk_file file,
+             f_chunk_info info
+        where file.md5 = info.md5
+          and file.md5 = #{md5}
+          and info.user_id = #{userId}
+        order by num desc
+        limit 1
+    </select>
+
+</mapper>

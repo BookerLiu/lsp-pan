@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.booker.lsp.mapper.FileInfoMapper">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        file_name, brief, thumbnail, md5, path, length, duration, format, dir_id, custom_type_id, file_type, status, file_encrypt_flag, user_id, up_date, share, status_date
+    </sql>
+
+    <select id="getFileInfosByFileType" resultType="com.booker.lsp.entity.FileInfo">
+        select info.file_name, md5, path, length, format,
+        custom_type_id, file_type, status, file_encrypt_flag,
+        info.thumbnail,info.brief,
+        info.user_id, up_date, share, user.username, cType.name customTypeName
+        from f_file_info info join a_user user on info.user_id=user.id
+        left join f_custom_type cType on info.custom_type_id=cType.id
+        where info.user_id=#{userId}
+        and info.file_type = #{fileType.id}
+        <if test="customTypeId != null and customTypeId != '' and customTypeId != 'all'">
+            <choose>
+                <when test="customTypeId == 'noType'">
+                    and info.custom_type_id is null
+                </when>
+                <otherwise>
+                    and info.custom_type_id = #{customTypeId}
+                </otherwise>
+            </choose>
+
+        </if>
+        order by info.up_date desc
+    </select>
+
+    <select id="queryOneFileByMd5" resultType="com.booker.lsp.entity.FileInfo">
+        select
+        <include refid="Base_Column_List"/>
+        from f_file_info
+        where md5 = #{md5}
+        <if test="userId!=null and userId!=''">
+            and (user_id = #{userId} or share='Y')
+        </if>
+        limit 1
+    </select>
+
+
+    <select id="queryCountByMd5AndUser" resultType="java.lang.Integer">
+        select count(1)
+        from f_file_info
+        where md5 = #{md5}
+        <if test="userId != null and userId != ''">
+            and user_id = #{userId}
+        </if>
+        limit 1
+    </select>
+
+    <update id="updateStatusByMd5List">
+        update f_file_info
+        set status=#{status}, status_date=now()
+        where user_id=#{userId}
+        and md5 in
+        <foreach collection="md5List" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+
+    <select id="queryFileListByMd5List" resultType="com.booker.lsp.entity.FileInfo">
+        select
+        <include refid="Base_Column_List"/>
+        from f_file_info
+        where user_id=#{userId}
+        and md5 in
+        <foreach collection="md5List" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+    
+    
+    <select id="queryOwnAllFileListByMd5List" resultType="com.booker.lsp.entity.FileInfo">
+        select <include refid="Base_Column_List"/>
+        from f_file_info
+        where status!='2'
+        and md5 in
+        <foreach collection="md5List" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        group by md5 having count(1) > 1
+    </select>
+
+    <select id="queryFileList" resultType="com.booker.lsp.vo.FileInfoVO">
+        select <include refid="Base_Column_List"/>, user.username
+        from f_file_info file, a_user user
+        where file.user_id = user.id
+        <if test="params.username != null and params.username != ''">
+            and user.username = #{params.username}
+        </if>
+        <if test="params.fileName != null and params.fileName != ''">
+            and file.file_name like #{params.fileName}
+        </if>
+        <if test="params.upDateStart != null and params.upDateStart != ''">
+            and file.up_date >= #{params.upDateStart}
+        </if>
+        <if test="params.upDateEnd != null and params.upDateEnd != ''">
+            and file.up_date &lt;= #{params.upDateEnd}
+        </if>
+        <if test="params.fileType != null and params.fileType != ''">
+            and file.file_type = #{params.fileType}
+        </if>
+        order by file.up_date desc
+    </select>
+
+    <update id="updateFileNameByMD5">
+        update f_file_info
+        set file_name = #{fileName}
+        where user_id = #{userId}
+          and md5 = #{md5}
+    </update>
+
+</mapper>

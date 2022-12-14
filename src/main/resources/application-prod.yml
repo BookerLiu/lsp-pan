@@ -1,0 +1,46 @@
+# 应用服务 WEB 访问端口
+server:
+  port: 8081
+  servlet:
+    #访问路径
+    context-path: /lsp
+# 应用名称
+spring:
+  application:
+    name: lsp-pan
+  mvc:
+    pathmatch:
+      # 配置文档策略
+      matching-strategy: ant-path-matcher
+  #数据源
+  datasource:
+    url: jdbc:mysql://localhost:3306/lsp_pan?characterEncoding=utf-8
+    username: root
+    password: root
+    driver-class-name: com.mysql.jdbc.Driver
+
+  #spring security配置
+  security:
+    user:
+      name: admin
+      password: admin
+      roles: admin
+
+#下面这些内容是为了让MyBatis映射
+#指定Mybatis的Mapper文件
+mybatis:
+  mapper-locations: classpath*:com/booker/lsp/mapper/**/*.xml
+  #指定Mybatis的实体目录
+  type-aliases-package: com.booker.lsp.entity
+
+mybatis-plus:
+  mapper-locations: classpath*:com/booker/lsp/mapper/**/*.xml
+  type-aliases-package: com.booker.lsp.entity
+
+# 上传文件配置
+#文件根目录
+fileUpConfig:
+  rootDir: D:\rootDir
+  tempDir: D:\rootDir\temp
+
+

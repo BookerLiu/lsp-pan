@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.booker.lsp.mapper.CustomTypeMapper">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, parent_id, name, level, parent_flag, user_id, create_time, share_flag, own_file_type
+    </sql>
+
+    <select id="getUserCustomTypesByFileType" resultType="com.booker.lsp.entity.CustomType">
+        select <include refid="Base_Column_List"/>
+        from f_custom_type where user_id = #{userId} and own_file_type = #{fileType}
+    </select>
+
+</mapper>
